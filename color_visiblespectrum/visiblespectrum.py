@@ -3,7 +3,21 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.collections import LineCollection
 
-def lam2rgba(wavelength, gamma=1, t1=0, t2=0, At=1):
+def lam2rgba(wavelength, gamma=1, t1=30, t2=30, At=1):
+    '''
+    Function to generate a RGBA values corresponding to visible light
+    
+    Inputs
+    - wavelength : wavelength of light in nm
+    - gamma : gamma value
+    - t1 : range in nm of fadein before 380nm
+    - t2 : range in nm of fadeout after 750nm
+    - At : alpha value of the colors outside [380, 750]nm
+    
+    Outputs
+    - (R,G,B,A) : list element with R, G, B and A values
+    '''
+    
     wavelength = float(wavelength)
     
     if 380-t1 <= wavelength < 380:
@@ -59,6 +73,17 @@ def lam2rgba(wavelength, gamma=1, t1=0, t2=0, At=1):
     return (R, G, B, A)
 
 def spectral_cmap(clim, At):
+    '''
+    Function to generate a colormap object that span the colors of visible light
+    
+    Inputs
+    - clim : wavelength range in nm to generate colormap between [lam_min, lam_max]
+    - At : alpha value of the range outside [380, 750]
+    
+    Outputs
+    - spectralmap : colormap objects based on lookup tables using linear segments.
+    '''
+    
     clim=[clim[0]-1, clim[1]+1]
     if clim[0] < 380:
         t1 = 380 - clim[0]
@@ -75,7 +100,21 @@ def spectral_cmap(clim, At):
     spectralmap = LinearSegmentedColormap.from_list("spectrum", colorlist)
     return spectralmap
 
-def spectral_fill(ax, x, y, At=1):   
+def spectral_fill(ax, x, y, At=1):
+    '''
+    Function that adds a fill based on the visible light colormap between the lower ylim and a curve. This function should be called after the ylim has been set.
+    
+    Inputs
+    - ax : pyplot axis object
+    - x : wavelength array
+    - y : spectrum array
+    - At : parameter that sets the alpha value of the range outside [380, 750]
+    
+    Outputs
+    - Adds an image to the plot axis with vertical lines corresponding to the visible light colormap
+    - Adds a white fill between the spectrum and upper ylim
+    '''
+    
     xlim = [min(x), max(x)]
     ylim = ax.get_ylim()
     yz = [ylim[0], ylim[1]]
@@ -92,6 +131,18 @@ def spectral_fill(ax, x, y, At=1):
     ax.fill_between(x, y, ylim[1], color='w')
     
 def spectral_line(ax, x, y, linestyle='solid', linewidth=2):
+    '''
+    Function that plots a spectrum with a gradient color correponding to the visible light colormap
+    
+    Inputs
+    - ax : pyplot axis object
+    - x : wavelength array
+    - y : spectrum array
+    
+    Outputs
+    - Adds a LineCollection object to the plot axis with lines correponding to the input spectrum
+    - The color of each line is based on the RGBA value of its starting point
+    '''
     cols = np.linspace(0,1,len(x))
     points = np.array([x, y]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
